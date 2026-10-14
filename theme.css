@@ -1,0 +1,1203 @@
+/* =============================================================
+   Sumi — a monochrome desk theme for Obsidian
+   墨 ── 無彩色の作業机
+
+   設計の中心は1つだけ：
+   自分で選んでいない色を、画面に出さない。
+
+   Obsidian は UI の大半を --accent-h / --accent-s / --accent-l から
+   導出する。彩度を 0% にすると、ボタン・選択・リンク・グラフ・
+   チェックボックスまで一度に無彩色になる。このテーマはそれを
+   出発点にして、残った色を1つずつ落としている。
+
+   色を残す例外は2つだけ。どちらも「見た目より、作業や読みを優先する」
+   という基準で決めている。
+
+   1. エラー・警告・成功
+      無彩色にすると見落とす。気づけないと困る。
+
+   2. コードのシンタックスハイライト
+      文字列・コメント・関数名の区別が太さだけになると、コードが読めない。
+      見た目を揃えるために読みにくくするのは本末転倒なので、色を残す。
+
+   Author: frworks
+   License: MIT
+   ============================================================= */
+
+/* @settings
+
+name: Sumi
+id: sumi
+settings:
+    -
+        id: sumi-color
+        title: Color
+        title.ja: 色
+        type: heading
+        level: 2
+        collapsed: true
+    -
+        id: sumi-bg-primary
+        title: Editor background
+        title.ja: 本文の背景
+        type: variable-themed-color
+        format: hex
+        opacity: false
+        default-light: '#ffffff'
+        default-dark: '#202020'
+    -
+        id: sumi-bg-secondary
+        title: Sidebar background
+        title.ja: サイドバーの背景
+        type: variable-themed-color
+        format: hex
+        opacity: false
+        default-light: '#f4f4f4'
+        default-dark: '#181818'
+    -
+        id: sumi-text-normal
+        title: Text
+        title.ja: 本文の文字色
+        type: variable-themed-color
+        format: hex
+        opacity: false
+        default-light: '#242424'
+        default-dark: '#ededed'
+    -
+        id: sumi-mermaid-default
+        title: Keep Mermaid's own colors
+        title.ja: Mermaid を元の色に戻す
+        description: Off by default. Diagrams follow the accent colour instead.
+        description.ja: 既定はオフ。図はアクセントの色に従う。
+        type: class-toggle
+        default: false
+    -
+        id: sumi-callouts-color
+        title: Keep callout colors
+        title.ja: コールアウトを色付きに戻す
+        description: Off by default. Callouts are drawn in grey and told apart by their icon.
+        description.ja: 既定はオフ。コールアウトは無彩色で描き、アイコンで区別する。
+        type: class-toggle
+        default: false
+
+    -
+        id: sumi-type
+        title: Typography
+        title.ja: 文字と行
+        type: heading
+        level: 2
+        collapsed: true
+    -
+        id: sumi-line-width
+        title: Line width
+        title.ja: 本文の幅
+        type: variable-number-slider
+        default: 680
+        format: px
+        min: 520
+        max: 1100
+        step: 10
+    -
+        id: sumi-line-height
+        title: Line height
+        title.ja: 行の高さ
+        type: variable-number-slider
+        default: 1.6
+        min: 1.3
+        max: 2.1
+        step: 0.05
+    -
+        id: sumi-letter-spacing
+        title: Letter spacing
+        title.ja: 字間
+        description: Useful for CJK text.
+        description.ja: 日本語を読むときに効く。
+        type: variable-number-slider
+        default: 0.015
+        format: em
+        min: 0
+        max: 0.08
+        step: 0.005
+
+    -
+        id: sumi-heading
+        title: Headings
+        title.ja: 見出し
+        type: heading
+        level: 2
+        collapsed: true
+    -
+        id: sumi-headings-plain
+        title: Plain headings
+        title.ja: 見出しのバーを消す
+        description: Removes the marker bar and separates headings by size alone.
+        description.ja: 左のバーをやめ、大きさだけで段をつける。
+        type: class-toggle
+        default: false
+    -
+        id: sumi-marker-width
+        title: Marker width
+        title.ja: バーの太さ
+        type: variable-number-slider
+        default: 3
+        format: px
+        min: 2
+        max: 6
+        step: 1
+    -
+        id: sumi-marker-height
+        title: Marker height
+        title.ja: バーの高さ
+        description: Relative to the heading's text size.
+        description.ja: 見出しの文字サイズに対する比率。
+        type: variable-number-slider
+        default: 0.8
+        format: em
+        min: 0.4
+        max: 1.2
+        step: 0.05
+
+    -
+        id: sumi-ui
+        title: Interface
+        title.ja: 画面
+        type: heading
+        level: 2
+        collapsed: true
+    -
+        id: sumi-nav-row
+        title: Sidebar row height
+        title.ja: サイドバーの行の高さ
+        type: variable-number-slider
+        default: 27
+        format: px
+        min: 20
+        max: 40
+        step: 1
+    -
+        id: sumi-explorer-guides
+        title: Show indentation guides
+        title.ja: インデントの縦線を出す
+        description: Off by default. The file tree reads flatter without them.
+        description.ja: 既定はオフ。縦線がないほうがツリーが浅く見える。
+        type: class-toggle
+        default: false
+    -
+        id: sumi-properties-heading
+        title: Show the Properties heading
+        title.ja: プロパティの見出しを出す
+        type: class-toggle
+        default: false
+    -
+        id: sumi-ribbon-full
+        title: Full-strength ribbon icons
+        title.ja: リボンのアイコンを薄くしない
+        type: class-toggle
+        default: false
+    -
+        id: sumi-hide-sidebars-narrow
+        title: Hide sidebars in a narrow window
+        title.ja: 窓が狭いときサイドバーを隠す
+        description: Off by default. Below 960px the side panels are hidden and restored automatically when the window widens.
+        description.ja: 既定はオフ。960px未満でサイドパネルを隠し、広げると自動で戻る。
+        type: class-toggle
+        default: false
+*/
+
+
+/* =============================================================
+   1. Tokens / トークン
+   ============================================================= */
+
+/* Obsidian の土台になる無彩色の階調。
+   --background-* や --text-* だけを差し替えると、この階調を直接読む
+   箇所（Mermaid の配色生成、一部のUI）が標準テーマの色のまま残り、
+   画面と食い違う。起点からまとめて差し替える。 */
+
+.theme-light {
+  --color-base-00: #ffffff;
+  --color-base-05: #fafafa;
+  --color-base-10: #f5f5f5;
+  --color-base-20: #ededed;
+  --color-base-25: #e3e3e3;
+  --color-base-30: #dadada;
+  --color-base-35: #d2d2d2;
+  --color-base-40: #bdbdbd;
+  --color-base-50: #8a8a8a;
+  --color-base-60: #707070;
+  --color-base-70: #4a4a4a;
+  --color-base-100: #242424;
+}
+
+.theme-dark {
+  --color-base-00: #202020;
+  --color-base-05: #262626;
+  --color-base-10: #2a2a2a;
+  --color-base-20: #303030;
+  --color-base-25: #343434;
+  --color-base-30: #3a3a3a;
+  --color-base-35: #424242;
+  --color-base-40: #4e4e4e;
+  --color-base-50: #727272;
+  --color-base-60: #9a9a9a;
+  --color-base-70: #bdbdbd;
+  --color-base-100: #ededed;
+}
+
+.theme-light {
+  /* 彩度0。ここが無彩色の起点で、UIの大半はここから導出される。
+
+     --interactive-accent や --text-accent はテーマ側で固定しない。
+     固定すると、設定 → 外観 → アクセントカラー で色を選んでも
+     何も変わらなくなる。Obsidian が標準でこの3つから導出するので、
+     導出に任せることで、無彩色を既定にしたまま利用者の指定が効く。 */
+  --accent-h: 0;
+  --accent-s: 0%;
+  --accent-l: 18%;
+
+  --background-primary:         var(--sumi-bg-primary, #ffffff);
+  --background-primary-alt:     #fafafa;
+  --background-secondary:       var(--sumi-bg-secondary, #f4f4f4);
+  --background-secondary-alt:   #ededed;
+
+  --background-modifier-border:         #e3e3e3;
+  --background-modifier-border-hover:   #d6d6d6;
+  --background-modifier-border-focus:   #bdbdbd;
+  --background-modifier-hover:          #eaeaea;
+  --background-modifier-active-hover:   #e1e1e1;
+  --background-modifier-form-field:     #ffffff;
+  --background-modifier-box-shadow:     rgba(0, 0, 0, .08);
+
+  --divider-color:        #e3e3e3;
+  --divider-color-hover:  #cfcfcf;
+
+  --text-normal:    var(--sumi-text-normal, #242424);
+  --text-muted:     #707070;
+  --text-faint:     #929292;
+  --text-on-accent: #ffffff;
+
+  --text-selection:    rgba(0, 0, 0, .12);
+  --text-highlight-bg: #e6e6e6;
+  --sumi-table-border: #cfcfcf;
+  --sumi-table-head: #f2f2f2;
+
+  --interactive-normal:       #f0f0f0;
+  --interactive-hover:        #e6e6e6;
+
+  --scrollbar-bg:              transparent;
+  --scrollbar-thumb-bg:        rgba(0, 0, 0, .14);
+  --scrollbar-active-thumb-bg: rgba(0, 0, 0, .3);
+
+  /* 例外：見落とすと困るものだけ色を残す */
+  --text-error:   #9e3b3b;
+  --text-warning: #8a6a1f;
+  --text-success: #3b6b45;
+  --background-modifier-error:       rgba(158, 59, 59, .12);
+  --background-modifier-error-hover: rgba(158, 59, 59, .2);
+  --background-modifier-success:     rgba(59, 107, 69, .12);
+}
+
+.theme-dark {
+  --accent-h: 0;
+  --accent-s: 0%;
+  --accent-l: 80%;
+
+  --background-primary:         var(--sumi-bg-primary, #202020);
+  --background-primary-alt:     #252525;
+  --background-secondary:       var(--sumi-bg-secondary, #181818);
+  --background-secondary-alt:   #141414;
+
+  --background-modifier-border:         #353535;
+  --background-modifier-border-hover:   #424242;
+  --background-modifier-border-focus:   #5a5a5a;
+  --background-modifier-hover:          #303030;
+  --background-modifier-active-hover:   #383838;
+  --background-modifier-form-field:     #1a1a1a;
+  --background-modifier-box-shadow:     rgba(0, 0, 0, .4);
+
+  --divider-color:        #353535;
+  --divider-color-hover:  #4a4a4a;
+
+  --text-normal:    var(--sumi-text-normal, #ededed);
+  --text-muted:     #aaaaaa;
+  --text-faint:     #888888;
+  --text-on-accent: #141414;
+
+  --text-selection:    rgba(255, 255, 255, .15);
+  --text-highlight-bg: #414141;
+  --sumi-table-border: #484848;
+  --sumi-table-head: #262626;
+
+  --interactive-normal:       #2a2a2a;
+  --interactive-hover:        #343434;
+
+  --scrollbar-bg:              transparent;
+  --scrollbar-thumb-bg:        rgba(255, 255, 255, .14);
+  --scrollbar-active-thumb-bg: rgba(255, 255, 255, .3);
+
+  --text-error:   #d08a8a;
+  --text-warning: #cdb378;
+  --text-success: #8fbf9c;
+  --background-modifier-error:       rgba(208, 138, 138, .14);
+  --background-modifier-error-hover: rgba(208, 138, 138, .22);
+  --background-modifier-success:     rgba(143, 191, 156, .14);
+}
+
+
+/* =============================================================
+   2. Shared values / 共通の値
+   ============================================================= */
+
+body {
+  /* --font-text-size は設定しない。
+     文字の大きさは利用者が決めるもの（設定 → 外観 → フォントサイズ）。
+     テーマが決めるのは比率のほう ── 見出しと本文の差、行の高さ、余白。
+     以下はすべて em で書いてあるので、利用者がサイズを変えても崩れない。 */
+  --sumi-fold-gap: 5px;
+
+  --file-line-width: var(--sumi-line-width, 680px);
+  --file-margins: 24px;
+
+  --line-height-normal: var(--sumi-line-height, 1.6);
+  --line-height-tight: 1.5;
+
+  /* 余白の元の値。ここだけ変えれば両モードが揃う。
+     読みモードは margin で間隔を作り、隣り合うと相殺されて1つぶんになる。
+     編集モードは行の padding なので相殺されず、同じ数値だと倍に空く。
+     そのため編集モード側には半分の値を渡している。 */
+  --sumi-para-gap: 0.62em;
+  --sumi-heading-gap: 1.38em;
+  --sumi-heading-gap-after: 0.44em;
+  --sumi-list-gap: 0.19em;
+
+  --p-spacing: calc(var(--sumi-para-gap) / 2);
+  --p-spacing-empty: 0px;
+  --heading-spacing: var(--sumi-heading-gap);
+  --list-spacing: var(--sumi-list-gap);
+
+  --h1-line-height: 1.35;
+  --h2-line-height: 1.4;
+  --h3-line-height: 1.45;
+  --h1-color: var(--text-normal);
+  --h2-color: var(--text-normal);
+  --h3-color: var(--text-normal);
+  --h4-color: var(--text-normal);
+  --h5-color: var(--text-normal);
+  --h6-color: var(--text-muted);
+  --h2-border: none;
+
+  --link-color: var(--text-normal);
+  --link-color-hover: var(--text-normal);
+  --link-external-color: var(--text-normal);
+  --link-external-color-hover: var(--text-normal);
+  --link-decoration: underline;
+  --link-decoration-color: var(--background-modifier-border);
+
+  --input-shadow: none;
+  --input-shadow-hover: none;
+  --input-radius: 6px;
+  --radius-s: 4px;
+  --radius-m: 6px;
+  --radius-l: 10px;
+
+  --shadow-s: none;
+  --shadow-l: 0 4px 16px var(--background-modifier-box-shadow);
+
+  --tab-radius-active: 6px;
+  --tab-outline-width: 0px;
+
+  --blockquote-border-color: var(--background-modifier-border);
+  --blockquote-color: var(--text-muted);
+  --hr-color: var(--divider-color);
+
+  --tag-color: var(--text-muted);
+  --tag-background: var(--background-modifier-hover);
+  --tag-background-hover: var(--background-modifier-active-hover);
+  --tag-border-width: 0px;
+  --tag-radius: 4px;
+
+  --table-header-background: var(--sumi-table-head);
+  --table-header-background-hover: var(--sumi-table-head);
+  --table-row-alt-background: transparent;
+  --table-row-background-hover: var(--background-modifier-hover);
+  --table-border-color: var(--sumi-table-border);
+  --table-border-width: 1px;
+  --table-cell-padding: 6px 10px;
+
+  --checkbox-color: var(--text-normal);
+  --checkbox-color-hover: var(--text-normal);
+  --checkbox-border-color: var(--background-modifier-border-hover);
+  --checkbox-border-color-hover: var(--text-muted);
+  --checkbox-radius: 4px;
+
+  --code-background: var(--background-secondary);
+  --code-normal: var(--text-normal);
+  --embed-border-left: 2px solid var(--background-modifier-border);
+
+  --icon-color: var(--text-muted);
+  --icon-color-hover: var(--text-normal);
+  --icon-stroke-width: 1.6px;
+
+  --nav-item-color: var(--text-normal);
+  --nav-item-color-hover: var(--text-normal);
+  --nav-item-color-active: var(--text-normal);
+  --nav-item-background-hover: var(--background-modifier-hover);
+  --nav-item-background-active: var(--background-primary);
+  --nav-item-weight-active: 600;
+
+  --modal-border-width: 1px;
+  --prompt-border-width: 1px;
+}
+
+
+/* =============================================================
+   3. Typography / 文字と行
+   ============================================================= */
+
+.markdown-preview-view,
+.markdown-source-view.mod-cm6 .cm-content {
+  letter-spacing: var(--sumi-letter-spacing, .015em);
+}
+
+/* 編集モードでは、原稿の空行がそのまま1行として高さを持つ。
+   読みモードは空行を描かないので、何もしないと編集モードだけ空く。
+   これは仕組みの違いで、完全には一致しない。空行を詰めて近づける。
+
+   0 にすると空行をクリックできなくなるため、段落の間隔ぶんは残す。 */
+.markdown-source-view.mod-cm6 .cm-line:has(> br:only-child),
+.markdown-source-view.mod-cm6 .cm-line:empty {
+  height: var(--sumi-para-gap);
+  min-height: var(--sumi-para-gap);
+  line-height: var(--sumi-para-gap);
+  padding-block: 0;
+  font-size: 0;
+}
+
+/* 行そのものの上下の余白。Obsidian は --p-spacing を行の padding として使う。
+   読みモードの margin と違って相殺されないため、半分の値を渡している。 */
+.markdown-source-view.mod-cm6 .cm-line {
+  padding-block: 0;
+  margin-block: 0;
+}
+
+.markdown-source-view.mod-cm6 .cm-line:not(:has(> br:only-child)) {
+  padding-block: calc(var(--sumi-para-gap) / 2) 0;
+}
+
+/* 見出し行の上の余白は、読みモードの見出しと同じ値にする */
+.markdown-source-view.mod-cm6 .cm-line:is(.HyperMD-header-1, .HyperMD-header-2, .HyperMD-header-3, .HyperMD-header-4, .HyperMD-header-5, .HyperMD-header-6) {
+  padding-block: var(--sumi-heading-gap) var(--sumi-heading-gap-after) !important;
+}
+
+/* リスト行は項目どうしの間隔に合わせる */
+.markdown-source-view.mod-cm6 .cm-line.HyperMD-list-line {
+  padding-block: var(--sumi-list-gap) 0;
+}
+
+.markdown-rendered p { margin-block: 0 var(--sumi-para-gap); }
+.markdown-rendered :is(ul, ol) { margin-block: 0 var(--sumi-para-gap); }
+.markdown-rendered li { margin-block: var(--sumi-list-gap); }
+.markdown-rendered ul.contains-task-list li { line-height: 1.6; }
+.markdown-rendered :is(p, ul, ol):last-child { margin-bottom: 0; }
+
+.markdown-rendered hr {
+  border: none;
+  border-top: 1px solid var(--hr-color);
+}
+
+.markdown-rendered blockquote {
+  border-inline-start: 2px solid var(--blockquote-border-color);
+  padding-inline-start: 1em;
+  font-style: normal;
+}
+
+
+/* =============================================================
+   4. Headings / 見出し
+   -------------------------------------------------------------
+   大きさの差を小さく保ち、左の短いバーで段を示す。
+   読みモードと編集モードで同じ位置・同じ太さに揃えてある。
+   ============================================================= */
+
+.markdown-rendered :is(h1, h2, h3, h4, h5, h6) {
+  margin-block: var(--sumi-heading-gap) var(--sumi-heading-gap-after);
+  font-weight: 600;
+}
+
+.markdown-rendered h1 { font-size: 1.55em; letter-spacing: .01em; }
+.markdown-rendered h2 { font-size: 1.22em; }
+.markdown-rendered h3 { font-size: 1em;    letter-spacing: .01em; }
+.markdown-rendered h4 { font-size: .95em;  color: var(--text-muted); }
+.markdown-rendered h5 { font-size: .9em;   color: var(--text-muted); }
+.markdown-rendered h6 { font-size: .85em;  color: var(--text-faint); letter-spacing: .06em; }
+
+/* ノートの先頭の見出しは、上の余白を詰める */
+.markdown-rendered > :is(h1, h2, h3, h4, h5, h6):first-child,
+.markdown-preview-section > div:first-child :is(h1, h2, h3, h4, h5, h6) {
+  margin-top: 0;
+}
+
+.markdown-reading-view .markdown-rendered :is(h1, h2, h3, h4, h5, h6) {
+  border: none !important;
+  box-shadow: none;
+  background-image: none;
+  position: relative;
+  padding-inline-start: 13px;
+  font-weight: 600;
+}
+
+.markdown-reading-view .markdown-rendered :is(h1, h2, h3, h4, h5, h6)::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: calc((1lh - var(--sumi-marker-height, .8em)) / 2);
+  width: var(--sumi-marker-width, 3px);
+  height: var(--sumi-marker-height, .8em);
+  border-radius: 999px;
+  background: var(--text-normal);
+  pointer-events: none;
+}
+
+/* 編集モード。行の余白ではなく文字のemボックスを基準にする。
+   絶対配置の擬似要素なので、カーソル位置も行高も変わらない。 */
+.markdown-source-view.mod-cm6 .cm-line:is(.HyperMD-header-1, .HyperMD-header-2, .HyperMD-header-3, .HyperMD-header-4, .HyperMD-header-5, .HyperMD-header-6) {
+  border: none !important;
+  box-shadow: none !important;
+  margin-block: 0 !important;
+  background-image: none !important;
+  padding-inline-start: 13px;
+  color: var(--text-normal);
+}
+
+.markdown-source-view.mod-cm6 .cm-line > :nth-child(1 of [class*="cm-header-"]:not(.cm-formatting)) {
+  position: relative;
+}
+
+.markdown-source-view.mod-cm6 .cm-line > :nth-child(1 of [class*="cm-header-"]:not(.cm-formatting))::before {
+  content: "";
+  position: absolute;
+  left: -13px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--sumi-marker-width, 3px);
+  height: var(--sumi-marker-height, .8em);
+  border-radius: 999px;
+  background: var(--text-normal);
+  pointer-events: none;
+}
+
+/* 折りたたみの矢印に、バーの左へ専用の列を作る。
+   見出しに position: relative を与えた時点で、絶対配置の矢印の基準が
+   この見出し自身に移る。逃がさないとバーと同じ列に重なって出る。 */
+.markdown-reading-view .markdown-rendered :is(h1, h2, h3, h4, h5, h6) > .heading-collapse-indicator {
+  --icon-size: 14px;
+  position: absolute;
+  left: calc(-1 * (14px + var(--sumi-fold-gap, 5px)));
+  top: calc((1lh - 14px) / 2);
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-faint);
+}
+
+.markdown-reading-view .markdown-rendered :is(h1, h2, h3, h4, h5, h6):hover > .heading-collapse-indicator,
+.markdown-reading-view .markdown-rendered :is(h1, h2, h3, h4, h5, h6).is-collapsed > .heading-collapse-indicator {
+  color: var(--text-muted);
+}
+
+/* 編集モード側。Obsidianのバージョンで出方が変わるため、
+   バーの列に入り込んだ場合だけ効く保険として同じ列へ逃がす。 */
+.markdown-source-view.mod-cm6 .cm-line :is(.heading-collapse-indicator, .cm-fold-indicator) {
+  left: calc(-13px - 14px - var(--sumi-fold-gap, 5px));
+}
+
+/* =============================================================
+   5. Links / リンク
+   ============================================================= */
+
+.markdown-rendered :is(a.internal-link, a.external-link) {
+  color: var(--text-normal);
+  text-decoration: underline;
+  text-decoration-color: var(--background-modifier-border);
+  text-underline-offset: 3px;
+  border-bottom: none;
+}
+
+.markdown-rendered :is(a.internal-link, a.external-link):hover {
+  text-decoration-color: var(--text-muted);
+}
+
+.markdown-rendered a.internal-link.is-unresolved {
+  color: var(--text-muted);
+  text-decoration-style: dotted;
+}
+
+/* 外部リンクの ↗ を消す。Obsidian のバージョンによって背景画像だったり
+   擬似要素だったりするため、両方塞ぐ。 */
+body {
+  --link-external-decoration: underline;
+}
+
+:is(.markdown-rendered, .markdown-source-view) a.external-link,
+:is(.markdown-rendered, .markdown-source-view) a.external-link:hover {
+  background-image: none !important;
+  padding-inline-end: 0 !important;
+}
+
+:is(.markdown-rendered, .markdown-source-view) a.external-link::after,
+:is(.markdown-rendered, .markdown-source-view) .cm-url::after {
+  content: none !important;
+  display: none !important;
+}
+
+
+/* =============================================================
+   6. Tables, code, callouts / 表・コード・コールアウト
+   ============================================================= */
+
+/* 表は、無彩色でも「表」として読めることを優先する。
+   本文の罫線（--divider-color）より一段濃い線を使う。
+   薄い線だと、コールアウトの上に置いたときに消える。 */
+.markdown-rendered table {
+  font-size: var(--sumi-table-size, .9em);
+  border-collapse: collapse;
+  border: 1px solid var(--sumi-table-border);
+
+  /* 幅が足りないとき、列を潰すのではなく横スクロールに逃がす。
+     表そのものをスクロールの器にしているので、Obsidian 側の
+     包みの有無に左右されない。 */
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.markdown-rendered :is(th, td) {
+  border: 1px solid var(--sumi-table-border) !important;
+  padding: var(--sumi-table-pad, 6px 10px);
+  vertical-align: top;
+
+  /* 空のセルが潰れないための下限 */
+  min-width: var(--sumi-table-min, 3em);
+}
+
+/* 列は潰さない。折り返しもしない。幅が足りなければ横スクロールに逃がす。
+   表の中で折り返すと、1語が2〜3文字に割れて読めなくなるため。
+
+   Obsidian はセルの中身を入れ子の要素で包むことがあり、
+   折り返しはそちら側で決まる。セルだけに指定しても効かないので、
+   中身まで含めて押さえる。
+   代償：長い文を入れたセルがあると、その表はかなり横に長くなる。 */
+.markdown-rendered table :is(th, td),
+.markdown-rendered table :is(th, td) * {
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+  text-wrap: nowrap !important;
+}
+
+.markdown-rendered th {
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: .9em;
+  letter-spacing: .04em;
+  background: var(--sumi-table-head) !important;
+  border-bottom-width: 2px !important;
+}
+
+/* コールアウトや引用の中でも同じ濃さを保つ */
+.markdown-rendered :is(.callout, blockquote) :is(th, td) {
+  border-color: var(--sumi-table-border) !important;
+}
+
+.markdown-rendered tbody tr:hover {
+  background: var(--background-modifier-hover);
+}
+
+.markdown-rendered :not(pre) > code {
+  background: var(--code-background);
+  border-radius: 4px;
+  padding: .1em .35em;
+  font-size: .9em;
+}
+
+.markdown-rendered pre {
+  background: var(--code-background);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+}
+
+/* コールアウトは既定で無彩色。種類はアイコンで見分ける。
+   色を戻したい場合は Style Settings から。 */
+body:not(.sumi-callouts-color) .callout {
+  --callout-color: 128, 128, 128;
+  background: var(--background-primary-alt);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  mix-blend-mode: normal;
+}
+
+body:not(.sumi-callouts-color) .callout-title {
+  color: var(--text-normal);
+  background: transparent;
+}
+
+body:not(.sumi-callouts-color) .callout-icon .svg-icon {
+  color: var(--text-muted);
+}
+
+
+/* =============================================================
+   7. File explorer / ファイルツリー
+   -------------------------------------------------------------
+   階層を浅く見せる。縦のガイド線を出さず、選択行だけ面で示す。
+   ============================================================= */
+
+.workspace-leaf-content[data-type="file-explorer"] {
+  --nav-item-padding: 4px 8px;
+  --nav-item-children-padding-start: 10px;
+  --nav-item-children-margin-start: 0px;
+}
+
+body:not(.sumi-explorer-guides) .workspace-leaf-content[data-type="file-explorer"] {
+  --nav-indentation-guide-width: 0px;
+  --nav-indentation-guide-color: transparent;
+}
+
+body:not(.sumi-explorer-guides) .workspace-leaf-content[data-type="file-explorer"] .nav-folder-children {
+  border-inline-start: none !important;
+  margin-inline-start: 0 !important;
+  padding-inline-start: 10px !important;
+}
+
+.workspace-leaf-content[data-type="file-explorer"] .nav-files-container > .nav-folder > .nav-folder-children {
+  padding-inline-start: 0 !important;
+}
+
+.workspace-leaf-content[data-type="file-explorer"] .nav-files-container {
+  padding-inline: 8px !important;
+}
+
+.nav-file-title,
+.nav-folder-title {
+  min-height: var(--sumi-nav-row, 27px);
+  padding-block: 4px;
+  font-size: 13px;
+  line-height: 1.45;
+  border-radius: 4px;
+  box-shadow: none;
+  margin-inline: 0 !important;
+  width: auto;
+}
+
+.nav-folder-title {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.nav-file-title {
+  color: var(--text-normal);
+  font-weight: 400;
+}
+
+.nav-file-title.is-active {
+  background: var(--background-primary) !important;
+  color: var(--text-normal);
+  font-weight: 600;
+  border-radius: 6px !important;
+  /* テーマ側の装飾も角丸の内側に収める */
+  clip-path: inset(0 round 6px);
+}
+
+:is(.nav-file-title-content, .nav-folder-title-content) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 先頭がアンダースコアのフォルダは、あることは分かるが目立たない。
+   _archive / _system のように、しまい込む場所に付ける命名の慣習に合わせている。 */
+.nav-folder-title[data-path^="_"],
+.nav-folder-title[data-path*="/_"] {
+  opacity: .7;
+}
+
+.nav-folder-title[data-path^="_"]:hover,
+.nav-folder-title[data-path*="/_"]:hover {
+  opacity: 1;
+}
+
+
+/* =============================================================
+   8. Tabs, ribbon, status bar / タブ・リボン・ステータスバー
+   ============================================================= */
+
+.workspace-tab-header-container {
+  border-bottom: 1px solid var(--divider-color);
+}
+
+.workspace-tab-header {
+  box-shadow: none;
+}
+
+.workspace-tab-header-inner-title {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.workspace-tab-header.is-active .workspace-tab-header-inner-title {
+  color: var(--text-normal);
+}
+
+body:not(.sumi-ribbon-full) .workspace-ribbon .side-dock-ribbon-action {
+  opacity: .75;
+}
+
+.workspace-ribbon .side-dock-ribbon-action:hover {
+  opacity: 1;
+}
+
+.status-bar {
+  border-top: 1px solid var(--divider-color);
+  background: var(--background-secondary);
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+/* サイドパネルのタブは1行に収め、横スクロールで逃がす。
+   折り返すとウィンドウ操作ボタンの位置が動くため。 */
+.workspace-split.mod-right-split .workspace-tab-header-container-inner {
+  flex-wrap: nowrap;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+
+.workspace-split.mod-right-split .workspace-tab-header {
+  flex-shrink: 0;
+}
+
+.workspace-split.mod-sidedock .view-content {
+  min-width: 0;
+}
+
+
+/* =============================================================
+   9. Properties / プロパティ
+   ============================================================= */
+
+.metadata-container {
+  font-size: .85em;
+  border: none;
+  padding-block: 0;
+}
+
+body:not(.sumi-properties-heading) .metadata-properties-heading {
+  display: none;
+}
+
+.metadata-property-key {
+  color: var(--text-faint);
+}
+
+
+/* =============================================================
+   10. Inputs, buttons, modals / 入力・ボタン・モーダル
+   ============================================================= */
+
+button:not(.clickable-icon),
+input,
+textarea,
+select,
+.dropdown {
+  box-shadow: none;
+  border-radius: var(--input-radius);
+}
+
+button:not(.clickable-icon):not(.mod-cta) {
+  background: var(--interactive-normal);
+  border: 1px solid var(--background-modifier-border);
+}
+
+.modal,
+.prompt,
+.menu,
+.suggestion-container {
+  border: 1px solid var(--background-modifier-border);
+  box-shadow: var(--shadow-l);
+}
+
+.suggestion-item.is-selected {
+  background: var(--background-modifier-hover);
+}
+
+.setting-item {
+  border-top: 1px solid var(--divider-color);
+}
+
+
+/* =============================================================
+   11. Graph, canvas, search, tags / その他のビュー
+   ============================================================= */
+
+.theme-light {
+  --graph-line: #d8d8d8;
+  --graph-node: #4a4a4a;
+  --graph-node-focused: #111111;
+  --graph-node-tag: #8a8a8a;
+  --graph-node-attachment: #a8a8a8;
+  --graph-node-unresolved: #c4c4c4;
+
+  --canvas-color-1: 0, 0, 0;
+  --canvas-color-2: 70, 70, 70;
+  --canvas-color-3: 110, 110, 110;
+  --canvas-color-4: 150, 150, 150;
+  --canvas-color-5: 185, 185, 185;
+  --canvas-color-6: 215, 215, 215;
+  --canvas-dot-pattern: #e6e6e6;
+}
+
+.theme-dark {
+  --graph-line: #3a3a3a;
+  --graph-node: #c0c0c0;
+  --graph-node-focused: #ffffff;
+  --graph-node-tag: #8a8a8a;
+  --graph-node-attachment: #6e6e6e;
+  --graph-node-unresolved: #4d4d4d;
+
+  --canvas-color-1: 255, 255, 255;
+  --canvas-color-2: 200, 200, 200;
+  --canvas-color-3: 165, 165, 165;
+  --canvas-color-4: 130, 130, 130;
+  --canvas-color-5: 95, 95, 95;
+  --canvas-color-6: 65, 65, 65;
+  --canvas-dot-pattern: #2c2c2c;
+}
+
+.search-result-file-title {
+  color: var(--text-normal);
+}
+
+.search-result-file-matched-text {
+  background: var(--text-highlight-bg);
+  color: var(--text-normal);
+}
+
+.tag,
+a.tag {
+  color: var(--tag-color);
+  background: var(--tag-background);
+  border: none;
+  font-size: .85em;
+  padding: .1em .5em;
+}
+
+
+/* =============================================================
+   Mermaid / 図
+   -------------------------------------------------------------
+   Mermaid は自前の配色を SVG の中に書き出すため、放っておくと
+   無彩色の画面の中でそこだけ色が付く。アクセントに従わせる。
+
+   既定のアクセントは無彩色なので、既定では図も無彩色になる。
+   Style Settings でアクセントに色を選べば、図もその色に変わる。
+
+   SVG 内に埋め込まれた ID 付きの指定より弱くならないよう !important。
+   ============================================================= */
+
+/* Obsidian では .mermaid は入れ物の <div> で、その中に <svg> が入る。
+   <svg> 側に付く版もありうるので、両方を :is() で受ける。
+
+   色は必ず既定値つきで書く。var() の連鎖が1か所でも解決できないと
+   宣言ごと無効になり、fill は継承に落ちて SVG ルートの文字色を拾う。 */
+
+.theme-light {
+  --sumi-diagram-fill:   #f4f4f4;
+  --sumi-diagram-group:  #e9e9e9;
+  --sumi-diagram-stroke: var(--interactive-accent, #242424);
+  --sumi-diagram-line:   var(--text-muted, #6e6e6e);
+  --sumi-diagram-text:   var(--text-normal, #242424);
+}
+
+.theme-dark {
+  --sumi-diagram-fill:   #303030;
+  --sumi-diagram-group:  #272727;
+  --sumi-diagram-stroke: var(--interactive-accent, #d4d4d4);
+  --sumi-diagram-line:   var(--text-muted, #9a9a9a);
+  --sumi-diagram-text:   var(--text-normal, #dadada);
+}
+
+/* アクセントに色を選んだときは、塗りもその色を薄めて追従させる。
+   既定のアクセントは無彩色なので、既定では上の値とほぼ同じ濃さになる。
+   @supports で囲ってあるので、color-mix() に対応していない環境では
+   上の既定値のまま出る。 */
+@supports (color: color-mix(in srgb, red 10%, blue)) {
+  .theme-light {
+    --sumi-diagram-fill:  color-mix(in srgb, var(--interactive-accent, #242424) 8%,  var(--background-primary, #ffffff));
+    --sumi-diagram-group: color-mix(in srgb, var(--interactive-accent, #242424) 14%, var(--background-primary, #ffffff));
+  }
+  .theme-dark {
+    --sumi-diagram-fill:  color-mix(in srgb, var(--interactive-accent, #d4d4d4) 12%, var(--background-primary, #202020));
+    --sumi-diagram-group: color-mix(in srgb, var(--interactive-accent, #d4d4d4) 6%,  var(--background-primary, #202020));
+  }
+}
+
+/* Obsidian 本体は、ダークモードで Mermaid の SVG に
+   filter: invert(1) hue-rotate(180deg) saturate(1.25) をかける
+   （app.css の .theme-dark .mermaid > svg）。
+   Mermaid が持つ明るい既定色を、反転させて暗く見せるための仕組み。
+
+   Sumi は図を自前で画面に合った色に塗るので、その上から反転されると
+   すべてが逆になる。暗く塗った図形が明るくなり、明るく指定した文字が
+   黒くなる。自前で塗るときは反転を切る。
+
+   Style Settings で「Mermaid を元の色に戻す」を選んだときは、
+   Mermaid 本来の明るい配色に戻るので、本体の反転をそのまま使う。 */
+body.theme-dark:not(.sumi-mermaid-default) .mermaid > svg {
+  filter: none !important;
+}
+
+body:not(.sumi-mermaid-default) .markdown-rendered :is(.mermaid, .mermaid svg) {
+  background: transparent !important;
+  max-width: 100%;
+  height: auto;
+  /* Mermaid は独自の書体を持つ。日本語が別のフォントに落ちるので揃える。 */
+  font-family: var(--font-text) !important;
+}
+
+body:not(.sumi-mermaid-default) .markdown-rendered :is(.mermaid, .mermaid svg) :is(text, tspan, foreignObject div, foreignObject span, foreignObject p) {
+  font-family: var(--font-text) !important;
+}
+
+/* 図形 ── 塗りは薄く、枠はアクセント。
+   図の種類ごとにクラス名が違い、1つでも取りこぼすと Mermaid 本来の
+   明るい塗りが残る。暗い画面ではそこに明るい文字が乗って読めなくなるため、
+   まず図形全体をまとめて押さえ、例外を後ろで戻す。 */
+body:not(.sumi-mermaid-default) .markdown-rendered :is(.mermaid, .mermaid svg) :is(rect, polygon, circle, ellipse),
+body:not(.sumi-mermaid-default) .markdown-rendered :is(.mermaid, .mermaid svg) :is(.node path, .label-container) {
+  fill: var(--sumi-diagram-fill, var(--background-primary-alt)) !important;
+  stroke: var(--sumi-diagram-stroke, var(--text-normal)) !important;
+  stroke-width: 1px !important;
+  filter: none !important;
+}
+
+/* 図全体の下敷きは塗らない（塗ると図の領域だけ色が付く） */
+body:not(.sumi-mermaid-default) .markdown-rendered :is(.mermaid, .mermaid svg) > rect:first-child,
+body:not(.sumi-mermaid-default) .markdown-rendered :is(.mermaid, .mermaid svg) rect.background {
+  fill: transparent !important;
+  stroke: none !important;
+}
+
+/* 枠（subgraph など）は一段落とす */
+body:not(.sumi-mermaid-default) .markdown-rendered :is(.mermaid, .mermaid svg) :is(.cluster rect, .cluster polygon) {
+  fill: var(--sumi-diagram-group, var(--background-secondary)) !important;
+  stroke: var(--background-modifier-border) !important;
+}
+
+/* 線 */
+body:not(.sumi-mermaid-default) .markdown-rendered :is(.mermaid, .mermaid svg) :is(
+  .edgePath .path, .flowchart-link, .relation, .transition,
+  .messageLine0, .messageLine1, .loopLine, .actor-line, .divider
+) {
+  stroke: var(--sumi-diagram-line, var(--text-muted)) !important;
+  fill: none !important;
+}
+
+/* 矢印の頭 */
+body:not(.sumi-mermaid-default) .markdown-rendered :is(.mermaid, .mermaid svg) :is(marker path, marker circle, .marker, .arrowheadPath, .arrowMarkerPath) {
+  fill: var(--sumi-diagram-line, var(--text-muted)) !important;
+  stroke: var(--sumi-diagram-line, var(--text-muted)) !important;
+}
+
+/* 文字（SVG の text は fill で色が決まる） */
+body:not(.sumi-mermaid-default) .markdown-rendered :is(.mermaid, .mermaid svg) :is(
+  text, tspan, .nodeLabel, .cluster-label, .messageText, .loopText, .labelText,
+  .titleText, .taskText, .sectionTitle, .pieTitleText
+) {
+  fill: var(--sumi-diagram-text, var(--text-normal)) !important;
+  color: var(--sumi-diagram-text, var(--text-normal)) !important;
+}
+
+/* 文字（foreignObject の中は HTML なので color で決まる） */
+body:not(.sumi-mermaid-default) .markdown-rendered :is(.mermaid, .mermaid svg) foreignObject :is(div, span, p) {
+  color: var(--sumi-diagram-text, var(--text-normal)) !important;
+  background: transparent !important;
+}
+
+/* 線の上に乗るラベルは、線が透けないよう背景を敷く */
+body:not(.sumi-mermaid-default) .markdown-rendered :is(.mermaid, .mermaid svg) .edgeLabel :is(rect, foreignObject div, foreignObject span) {
+  background: var(--background-primary) !important;
+  color: var(--text-muted) !important;
+  fill: var(--background-primary) !important;
+  stroke: none !important;
+}
+
+/* 円グラフは枚数ぶん色が要るので、明度だけで段をつける */
+body:not(.sumi-mermaid-default) .markdown-rendered :is(.mermaid, .mermaid svg) :is(.pieCircle, .slice) {
+  stroke: var(--background-primary) !important;
+  stroke-width: 2px !important;
+}
+
+
+/* =============================================================
+   12. Narrow windows and mobile / 狭い窓とモバイル
+   ============================================================= */
+
+@media (max-width: 760px) {
+  body { --file-margins: 18px; }
+}
+
+/* 既定ではオフ。有効にすると960px未満でサイドパネルを隠す。
+   広げれば自動で戻るので、閉じたままになることはない。 */
+@media (max-width: 960px) {
+  body.sumi-hide-sidebars-narrow .workspace-split.mod-left-split,
+  body.sumi-hide-sidebars-narrow .workspace-split.mod-right-split {
+    display: none !important;
+  }
+  body.sumi-hide-sidebars-narrow .workspace-ribbon.mod-left {
+    display: none;
+  }
+}
+
+body.is-mobile {
+  --file-margins: 16px;
+  --sumi-fold-gap: 2px;
+
+  /* 表だけ一段小さくする。本文の大きさは利用者の設定のまま。
+     狭い画面では、列が並んで見えることのほうが読みやすさに効く。 */
+  --sumi-table-size: .78em;
+  --sumi-table-pad: 4px 7px;
+  --sumi-table-min: 2.5em;
+}
+
+body.is-mobile .markdown-rendered :is(h1, h2, h3, h4, h5, h6) {
+  padding-inline-start: 11px;
+}
+
+
+/* =============================================================
+   13. Style Settings toggles / 設定による切り替え
+   ============================================================= */
+
+/* 見出しのバーを消す。消したぶんは大きさの差で補う。 */
+body.sumi-headings-plain .markdown-reading-view .markdown-rendered :is(h1, h2, h3, h4, h5, h6) {
+  padding-inline-start: 0;
+}
+
+body.sumi-headings-plain .markdown-reading-view .markdown-rendered :is(h1, h2, h3, h4, h5, h6)::before,
+body.sumi-headings-plain .markdown-source-view.mod-cm6 .cm-line > :nth-child(1 of [class*="cm-header-"]:not(.cm-formatting))::before {
+  display: none;
+}
+
+body.sumi-headings-plain .markdown-source-view.mod-cm6 .cm-line:is(.HyperMD-header-1, .HyperMD-header-2, .HyperMD-header-3, .HyperMD-header-4, .HyperMD-header-5, .HyperMD-header-6) {
+  padding-inline-start: 0;
+}
+
+body.sumi-headings-plain .markdown-rendered h1 { font-size: 1.8em; }
+body.sumi-headings-plain .markdown-rendered h2 { font-size: 1.4em; }
+body.sumi-headings-plain .markdown-rendered h3 { font-size: 1.15em; }
