@@ -513,7 +513,7 @@ body {
 .markdown-rendered p { margin-block: 0 var(--sumi-para-gap); }
 .markdown-rendered :is(ul, ol) { margin-block: 0 var(--sumi-para-gap); }
 .markdown-rendered li { margin-block: var(--sumi-list-gap); }
-.markdown-rendered ul.contains-task-list li { line-height: 1.6; }
+.markdown-rendered ul.contains-task-list li { line-height: var(--line-height-normal); }
 .markdown-rendered :is(p, ul, ol):last-child { margin-bottom: 0; }
 
 .markdown-rendered hr {
@@ -1032,7 +1032,7 @@ a.tag {
    無彩色の画面の中でそこだけ色が付く。アクセントに従わせる。
 
    既定のアクセントは無彩色なので、既定では図も無彩色になる。
-   Style Settings でアクセントに色を選べば、図もその色に変わる。
+   Obsidian の「設定 → 外観 → アクセントカラー」で色を選べば、図もその色に変わる。
 
    SVG 内に埋め込まれた ID 付きの指定より弱くならないよう !important。
    ============================================================= */
@@ -1223,9 +1223,6 @@ body.sumi-headings-plain .markdown-reading-view .markdown-rendered :is(h1, h2, h
 
 body.sumi-headings-plain .markdown-source-view.mod-cm6 .cm-line:is(.HyperMD-header-1, .HyperMD-header-2, .HyperMD-header-3, .HyperMD-header-4, .HyperMD-header-5, .HyperMD-header-6) {
   background-image: none;
-}
-
-body.sumi-headings-plain .markdown-source-view.mod-cm6 .cm-line:is(.HyperMD-header-1, .HyperMD-header-2, .HyperMD-header-3, .HyperMD-header-4, .HyperMD-header-5, .HyperMD-header-6) {
   padding-inline-start: 0;
 }
 

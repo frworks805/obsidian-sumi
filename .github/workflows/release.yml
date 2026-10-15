@@ -25,10 +25,4 @@ jobs:
             echo "Release $VERSION already exists."
             exit 0
           fi
-          cat > /tmp/sumi-release-notes.md <<'NOTES'
-          - 編集画面で空行のカーソルが見えなくなる問題を修正しました。
-          - 見出しバーの描画方法を変更し、表示のずれとカーソル移動への影響を修正しました。
-          - 見出しの折りたたみ矢印の位置調整方法を変更しました。
-          - ボタンと入力欄の枠線指定を見直し、プラグイン独自のデザインを上書きしにくくしました。
-          NOTES
-          gh release create "$VERSION" theme.css manifest.json --target "$GITHUB_SHA" --title "Sumi $VERSION" --notes-file /tmp/sumi-release-notes.md
+          gh release create "$VERSION" theme.css manifest.json --target "$GITHUB_SHA" --title "Sumi $VERSION" --notes-file RELEASE_NOTES.md
