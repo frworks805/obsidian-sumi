@@ -354,6 +354,9 @@ body {
      テーマが決めるのは比率のほう ── 見出しと本文の差、行の高さ、余白。
      以下はすべて em で書いてあるので、利用者がサイズを変えても崩れない。 */
   --sumi-fold-gap: 5px;
+  /* 見出しのバーと文字の間隔。読みモードは字下げ幅、編集モードは
+     行の外へ出す距離として使う。 */
+  --sumi-marker-gap: 13px;
 
   --file-line-width: var(--sumi-line-width, 680px);
   --file-margins: 24px;
@@ -393,8 +396,18 @@ body {
   --link-decoration: underline;
   --link-decoration-color: var(--background-modifier-border);
 
-  --input-shadow: none;
-  --input-shadow-hover: none;
+  /* ボタンと入力欄の枠は、セレクタではなく変数で渡す。
+
+     Obsidian は button / input を (0,0,1) で描いていて、その箱の縁は
+     --input-shadow が担っている。テーマ側で button を直接指定すると、
+     :not() を重ねたぶん詳細度が (0,2,1) まで上がり、プラグインが自前で
+     書いた `.panel .row button` と同点になる。同点なら後から読まれた
+     テーマが勝つので、プラグインの見た目を壊す。
+
+     変数に値を入れるだけなら詳細度は上がらない。プラグイン側の指定が
+     そのまま通る。 */
+  --input-shadow: inset 0 0 0 1px var(--background-modifier-border);
+  --input-shadow-hover: inset 0 0 0 1px var(--background-modifier-border-hover);
   --input-radius: 6px;
   --radius-s: 4px;
   --radius-m: 6px;
@@ -463,14 +476,17 @@ body {
    読みモードは空行を描かないので、何もしないと編集モードだけ空く。
    これは仕組みの違いで、完全には一致しない。空行を詰めて近づける。
 
-   0 にすると空行をクリックできなくなるため、段落の間隔ぶんは残す。 */
+   ただし詰めすぎない。font-size を 0 にすると行の高さと一緒に
+   カーソルの高さも 0 になり、空行に移動してもカーソルが見えなくなる。
+   Enter を押しても何も起きていないように見えて、書けなくなる。
+   1em 残しておけば、カーソルが見えてクリックもできる。
+   読みモードとの差は残るが、書けることを優先する。 */
 .markdown-source-view.mod-cm6 .cm-line:has(> br:only-child),
 .markdown-source-view.mod-cm6 .cm-line:empty {
-  height: var(--sumi-para-gap);
-  min-height: var(--sumi-para-gap);
-  line-height: var(--sumi-para-gap);
+  height: 1em;
+  min-height: 1em;
+  line-height: 1em;
   padding-block: 0;
-  font-size: 0;
 }
 
 /* 行そのものの上下の余白。Obsidian は --p-spacing を行の padding として使う。
@@ -542,7 +558,7 @@ body {
   box-shadow: none;
   background-image: none;
   position: relative;
-  padding-inline-start: 13px;
+  padding-inline-start: var(--sumi-marker-gap, 13px);
   font-weight: 600;
 }
 
@@ -558,32 +574,34 @@ body {
   pointer-events: none;
 }
 
-/* 編集モード。行の余白ではなく文字のemボックスを基準にする。
-   絶対配置の擬似要素なので、カーソル位置も行高も変わらない。 */
+/* 編集モード。バーは行そのものを基準に描く。
+
+   行の中の要素を基準にすると、カーソルを見出し行に合わせた瞬間に
+   ## が表示されて文字の開始位置が右へ動き、バーもつられて動く。
+   環境によっては基準の要素が見つからず、余白だけ残ってバーが出ない。
+   行に付ければ、## の表示状態にも環境にも左右されない。 */
 .markdown-source-view.mod-cm6 .cm-line:is(.HyperMD-header-1, .HyperMD-header-2, .HyperMD-header-3, .HyperMD-header-4, .HyperMD-header-5, .HyperMD-header-6) {
   border: none !important;
   box-shadow: none !important;
   margin-block: 0 !important;
-  background-image: none !important;
-  padding-inline-start: 13px;
+  padding-inline-start: var(--sumi-marker-gap, 13px);
   color: var(--text-normal);
-}
 
-.markdown-source-view.mod-cm6 .cm-line > :nth-child(1 of [class*="cm-header-"]:not(.cm-formatting)) {
-  position: relative;
-}
+  /* バーは擬似要素ではなく背景で描く。
 
-.markdown-source-view.mod-cm6 .cm-line > :nth-child(1 of [class*="cm-header-"]:not(.cm-formatting))::before {
-  content: "";
-  position: absolute;
-  left: -13px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: var(--sumi-marker-width, 3px);
-  height: var(--sumi-marker-height, .8em);
-  border-radius: 999px;
-  background: var(--text-normal);
-  pointer-events: none;
+     編集領域は contenteditable なので、::before で箱を足すと
+     ブラウザのキャレット移動がその箱を1つの位置として数える。
+     マウスで直接クリックすれば正しい位置に入るが、←キーで行頭へ
+     戻るときにその箱へ寄ってしまい、カーソルが飛んだように見える。
+     背景なら箱を作らないので、移動に影響しない。
+
+     読みモードの見出しは contenteditable の外なので、
+     あちらは ::before のままでよい。 */
+  background-image: linear-gradient(var(--text-normal), var(--text-normal));
+  background-repeat: no-repeat;
+  background-size: var(--sumi-marker-width, 3px) var(--sumi-marker-height, .8em);
+  /* 折り返した見出しでも1行目に合わせる */
+  background-position: left 0 top calc(var(--sumi-heading-gap) + (1lh - var(--sumi-marker-height, .8em)) / 2);
 }
 
 /* 折りたたみの矢印に、バーの左へ専用の列を作る。
@@ -609,10 +627,19 @@ body {
   color: var(--text-muted);
 }
 
-/* 編集モード側。Obsidianのバージョンで出方が変わるため、
-   バーの列に入り込んだ場合だけ効く保険として同じ列へ逃がす。 */
+/* 編集モード側の折りたたみ矢印は transform で逃がす。
+
+   left で動かすと、←キーで行頭へ戻ったときにカーソルがその位置まで
+   引っ張られる。この矢印は編集領域の中にある要素なので、位置を変えると
+   カーソルの行き先も変わる。マウスで直接クリックしたときは正しい位置に
+   入るので気づきにくい。実機で座標を測って確認した。
+
+   transform は見た目だけを動かし、箱の位置は元のままにする。
+   矢印はバーの左へ出るが、カーソルの移動先は変わらない。
+
+   読みモード側（上）は contenteditable の外なので left でよい。 */
 .markdown-source-view.mod-cm6 .cm-line :is(.heading-collapse-indicator, .cm-fold-indicator) {
-  left: calc(-13px - 14px - var(--sumi-fold-gap, 5px));
+  transform: translateX(calc(-1 * (14px + var(--sumi-fold-gap, 5px)))) !important;
 }
 
 /* =============================================================
@@ -910,18 +937,18 @@ body:not(.sumi-properties-heading) .metadata-properties-heading {
    10. Inputs, buttons, modals / 入力・ボタン・モーダル
    ============================================================= */
 
-button:not(.clickable-icon),
+/* 角丸だけは要素セレクタで当てる。詳細度は (0,0,1) で、
+   Obsidian 標準と同じ。プラグインの指定が普通に勝つ。 */
+button,
 input,
 textarea,
-select,
-.dropdown {
-  box-shadow: none;
+select {
   border-radius: var(--input-radius);
 }
 
-button:not(.clickable-icon):not(.mod-cta) {
-  background: var(--interactive-normal);
-  border: 1px solid var(--background-modifier-border);
+/* アイコンだけのボタンには縁を付けない。 */
+.clickable-icon {
+  box-shadow: none;
 }
 
 .modal,
@@ -1167,6 +1194,7 @@ body:not(.sumi-mermaid-default) .markdown-rendered :is(.mermaid, .mermaid svg) :
 body.is-mobile {
   --file-margins: 16px;
   --sumi-fold-gap: 2px;
+  --sumi-marker-gap: 11px;
 
   /* 表だけ一段小さくする。本文の大きさは利用者の設定のまま。
      狭い画面では、列が並んで見えることのほうが読みやすさに効く。 */
@@ -1176,7 +1204,7 @@ body.is-mobile {
 }
 
 body.is-mobile .markdown-rendered :is(h1, h2, h3, h4, h5, h6) {
-  padding-inline-start: 11px;
+  padding-inline-start: var(--sumi-marker-gap, 11px);
 }
 
 
@@ -1189,9 +1217,12 @@ body.sumi-headings-plain .markdown-reading-view .markdown-rendered :is(h1, h2, h
   padding-inline-start: 0;
 }
 
-body.sumi-headings-plain .markdown-reading-view .markdown-rendered :is(h1, h2, h3, h4, h5, h6)::before,
-body.sumi-headings-plain .markdown-source-view.mod-cm6 .cm-line > :nth-child(1 of [class*="cm-header-"]:not(.cm-formatting))::before {
+body.sumi-headings-plain .markdown-reading-view .markdown-rendered :is(h1, h2, h3, h4, h5, h6)::before {
   display: none;
+}
+
+body.sumi-headings-plain .markdown-source-view.mod-cm6 .cm-line:is(.HyperMD-header-1, .HyperMD-header-2, .HyperMD-header-3, .HyperMD-header-4, .HyperMD-header-5, .HyperMD-header-6) {
+  background-image: none;
 }
 
 body.sumi-headings-plain .markdown-source-view.mod-cm6 .cm-line:is(.HyperMD-header-1, .HyperMD-header-2, .HyperMD-header-3, .HyperMD-header-4, .HyperMD-header-5, .HyperMD-header-6) {
